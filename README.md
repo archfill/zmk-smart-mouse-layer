@@ -42,6 +42,8 @@ Optional properties:
 - `keep-behaviors`: behaviors that should keep the mouse layer active when pressed.
 - `keep-keycodes`: keycodes that should keep the mouse layer active when they appear in
   either binding parameter, including modifier keycodes inside `&kp`, `&mt`, or `&lt`.
+  While a matching binding is held, the inactivity timeout is suspended and resumes after
+  the binding is released.
 - `transparent-behaviors`: behaviors to skip when resolving the effective binding.
 
 ## Status

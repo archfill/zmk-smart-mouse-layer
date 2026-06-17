@@ -25,6 +25,7 @@
 #include <zmk/events/layer_state_changed.h>
 #include <zmk/events/position_state_changed.h>
 #include <zmk/keymap.h>
+#include <zmk/matrix.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -47,6 +48,8 @@ struct smart_mouse_layer_data {
     bool is_active;
     int64_t last_tapped_timestamp;
     uint32_t accumulated_movement;
+    bool keep_position_pressed[ZMK_KEYMAP_LEN];
+    uint8_t keep_position_pressed_count;
 };
 
 static bool behavior_name_in_list(const char *behavior_dev, const char *const *behaviors,
@@ -124,6 +127,11 @@ static bool should_block_activation(const struct smart_mouse_layer_config *confi
            (last_tapped + config->require_prior_idle_ms) > current_time;
 }
 
+static void smart_mouse_layer_clear_keep_positions(struct smart_mouse_layer_data *data) {
+    memset(data->keep_position_pressed, 0, sizeof(data->keep_position_pressed));
+    data->keep_position_pressed_count = 0;
+}
+
 static void smart_mouse_layer_set_active(struct smart_mouse_layer_data *data, bool active) {
     if (data->is_active == active) {
         return;
@@ -136,6 +144,7 @@ static void smart_mouse_layer_set_active(struct smart_mouse_layer_data *data, bo
         zmk_keymap_layer_activate(data->target_layer);
         LOG_DBG("Smart mouse layer %d activated", data->target_layer);
     } else {
+        smart_mouse_layer_clear_keep_positions(data);
         zmk_keymap_layer_deactivate(data->target_layer);
         LOG_DBG("Smart mouse layer %d deactivated", data->target_layer);
     }
@@ -157,6 +166,11 @@ static void disable_work_cb(struct k_work *work) {
 
 static void smart_mouse_layer_schedule_timeout(struct smart_mouse_layer_data *data,
                                                uint32_t timeout_ms) {
+    if (data->keep_position_pressed_count > 0) {
+        k_work_cancel_delayable(&data->disable_work);
+        return;
+    }
+
     if (timeout_ms > 0) {
         k_work_reschedule(&data->disable_work, K_MSEC(timeout_ms));
     }
@@ -257,6 +271,7 @@ static int handle_layer_state_changed(const struct device *dev, const zmk_event_
     if (data->is_active && !zmk_keymap_layer_active(data->target_layer)) {
         data->is_active = false;
         data->accumulated_movement = 0;
+        smart_mouse_layer_clear_keep_positions(data);
         k_work_cancel_delayable(&data->disable_work);
     }
 
@@ -285,7 +300,7 @@ static int handle_keycode_state_changed(const struct device *dev, const zmk_even
 
 static int handle_position_state_changed(const struct device *dev, const zmk_event_t *eh) {
     const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
-    if (!ev || !ev->state) {
+    if (!ev) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
@@ -302,11 +317,21 @@ static int handle_position_state_changed(const struct device *dev, const zmk_eve
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    if (effective_binding_keeps_layer(config, ev->position)) {
+    if (ev->state && effective_binding_keeps_layer(config, ev->position)) {
+        if (ev->position < ZMK_KEYMAP_LEN && !data->keep_position_pressed[ev->position]) {
+            data->keep_position_pressed[ev->position] = true;
+            data->keep_position_pressed_count++;
+        }
         smart_mouse_layer_schedule_timeout(data, data->timeout_ms);
-    } else {
+    } else if (ev->state) {
         smart_mouse_layer_set_active(data, false);
         k_work_cancel_delayable(&data->disable_work);
+    } else if (ev->position < ZMK_KEYMAP_LEN && data->keep_position_pressed[ev->position]) {
+        data->keep_position_pressed[ev->position] = false;
+        if (data->keep_position_pressed_count > 0) {
+            data->keep_position_pressed_count--;
+        }
+        smart_mouse_layer_schedule_timeout(data, data->timeout_ms);
     }
 
     k_mutex_unlock(&data->lock);
