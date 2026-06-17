@@ -33,6 +33,8 @@ struct smart_mouse_layer_config {
     int16_t require_prior_idle_ms;
     const char *const *keep_behaviors;
     size_t keep_behaviors_len;
+    const uint32_t *keep_keycodes;
+    size_t keep_keycodes_len;
     const char *const *transparent_behaviors;
     size_t transparent_behaviors_len;
 };
@@ -70,8 +72,24 @@ static bool binding_is_transparent(const struct smart_mouse_layer_config *config
 
 static bool binding_keeps_layer(const struct smart_mouse_layer_config *config,
                                 const struct zmk_behavior_binding *binding) {
-    return binding && behavior_name_in_list(binding->behavior_dev, config->keep_behaviors,
-                                            config->keep_behaviors_len);
+    if (!binding) {
+        return false;
+    }
+
+    if (behavior_name_in_list(binding->behavior_dev, config->keep_behaviors,
+                              config->keep_behaviors_len)) {
+        return true;
+    }
+
+    for (size_t i = 0; i < config->keep_keycodes_len; i++) {
+        uint32_t keycode = config->keep_keycodes[i];
+
+        if (binding->param1 == keycode || binding->param2 == keycode) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static bool effective_binding_keeps_layer(const struct smart_mouse_layer_config *config,
@@ -344,12 +362,15 @@ ZMK_SUBSCRIPTION(smart_mouse_layer, zmk_position_state_changed);
 ZMK_SUBSCRIPTION(smart_mouse_layer, zmk_keycode_state_changed);
 
 #define BEHAVIOR_NAME_AT_IDX(idx, prop, inst) DEVICE_DT_NAME(DT_INST_PHANDLE_BY_IDX(inst, prop, idx))
+#define KEYCODE_AT_IDX(idx, prop, inst) DT_INST_PROP_BY_IDX(inst, prop, idx)
 
 #define SMART_MOUSE_LAYER_INST(n)                                                                  \
     static struct smart_mouse_layer_data smart_mouse_layer_data_##n = {};                          \
     static const char *const keep_behaviors_##n[] = {                                              \
         LISTIFY(DT_INST_PROP_LEN(n, keep_behaviors), BEHAVIOR_NAME_AT_IDX, (, ), keep_behaviors,   \
                 n)};                                                                               \
+    static const uint32_t keep_keycodes_##n[] = {                                                   \
+        LISTIFY(DT_INST_PROP_LEN(n, keep_keycodes), KEYCODE_AT_IDX, (, ), keep_keycodes, n)};       \
     static const char *const transparent_behaviors_##n[] = {                                       \
         LISTIFY(DT_INST_PROP_LEN(n, transparent_behaviors), BEHAVIOR_NAME_AT_IDX, (, ),            \
                 transparent_behaviors, n)};                                                        \
@@ -358,6 +379,8 @@ ZMK_SUBSCRIPTION(smart_mouse_layer, zmk_keycode_state_changed);
         .require_prior_idle_ms = DT_INST_PROP_OR(n, require_prior_idle_ms, 0),                     \
         .keep_behaviors = keep_behaviors_##n,                                                      \
         .keep_behaviors_len = ARRAY_SIZE(keep_behaviors_##n),                                      \
+        .keep_keycodes = keep_keycodes_##n,                                                        \
+        .keep_keycodes_len = ARRAY_SIZE(keep_keycodes_##n),                                        \
         .transparent_behaviors = transparent_behaviors_##n,                                        \
         .transparent_behaviors_len = ARRAY_SIZE(transparent_behaviors_##n),                        \
     };                                                                                             \

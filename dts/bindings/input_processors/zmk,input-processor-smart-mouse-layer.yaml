@@ -25,6 +25,12 @@ properties:
     required: true
     description: Effective key behaviors that keep the smart mouse layer active.
 
+  keep-keycodes:
+    type: array
+    required: false
+    default: []
+    description: Keycodes in binding parameters that keep the smart mouse layer active.
+
   transparent-behaviors:
     type: phandles
     required: true
