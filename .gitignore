@@ -1,0 +1,21 @@
+# ZMK / Zephyr local builds
+build/
+build-*/
+.west/
+modules/
+tools/
+zephyrproject/
+
+# Firmware artifacts
+*.uf2
+*.hex
+*.bin
+*.elf
+*.map
+*.lst
+*.log
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
