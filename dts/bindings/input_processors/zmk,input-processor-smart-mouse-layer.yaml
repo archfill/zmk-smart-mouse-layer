@@ -1,0 +1,31 @@
+# Copyright (c) 2026 The ZMK Smart Mouse Layer Contributors
+# SPDX-License-Identifier: MIT
+
+description: Input processor for threshold-gated smart mouse layer activation
+
+compatible: "zmk,input-processor-smart-mouse-layer"
+
+include: ip_two_param.yaml
+
+properties:
+  movement-threshold:
+    type: int
+    required: false
+    default: 0
+    description: Accumulated absolute X/Y movement required before the layer activates.
+
+  require-prior-idle-ms:
+    type: int
+    required: false
+    default: 0
+    description: Time in milliseconds that must pass after the last keystroke before activation.
+
+  keep-behaviors:
+    type: phandles
+    required: true
+    description: Effective key behaviors that keep the smart mouse layer active.
+
+  transparent-behaviors:
+    type: phandles
+    required: true
+    description: Behaviors that should be treated as transparent during effective binding lookup.

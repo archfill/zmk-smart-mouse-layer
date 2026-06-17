@@ -1,0 +1,11 @@
+# Copyright (c) 2026 The ZMK Smart Mouse Layer Contributors
+# SPDX-License-Identifier: MIT
+
+config ZMK_SMART_MOUSE_LAYER
+    bool "Smart mouse layer input processor"
+    default y
+    depends on ZMK_POINTING
+    help
+      Enables an input processor that activates a mouse layer after pointer
+      movement exceeds a threshold and keeps it active for configured mouse
+      behaviors.
