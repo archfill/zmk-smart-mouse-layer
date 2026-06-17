@@ -41,6 +41,7 @@ struct smart_mouse_layer_data {
     struct k_mutex lock;
     struct k_work_delayable disable_work;
     uint8_t target_layer;
+    uint32_t timeout_ms;
     bool is_active;
     int64_t last_tapped_timestamp;
     uint32_t accumulated_movement;
@@ -196,6 +197,7 @@ static int smart_mouse_layer_handle_event(const struct device *dev, struct input
     }
 
     data->target_layer = param1;
+    data->timeout_ms = param2;
 
     if (data->is_active) {
         if (is_mouse_activity(event)) {
@@ -277,7 +279,14 @@ static int handle_position_state_changed(const struct device *dev, const zmk_eve
         return ret;
     }
 
-    if (data->is_active && !effective_binding_keeps_layer(config, ev->position)) {
+    if (!data->is_active) {
+        k_mutex_unlock(&data->lock);
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (effective_binding_keeps_layer(config, ev->position)) {
+        smart_mouse_layer_schedule_timeout(data, data->timeout_ms);
+    } else {
         smart_mouse_layer_set_active(data, false);
         k_work_cancel_delayable(&data->disable_work);
     }

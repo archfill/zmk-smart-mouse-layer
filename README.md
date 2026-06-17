@@ -24,18 +24,6 @@ or `&msc`.
 &trackball_central_listener {
     input-processors = <&smart_mouse_layer 8 2000>;
 };
-
-&mkp_input_listener {
-    input-processors = <&smart_mouse_layer 8 2000>;
-};
-
-&mmv_input_listener {
-    input-processors = <&smart_mouse_layer 8 2000>;
-};
-
-&msc_input_listener {
-    input-processors = <&smart_mouse_layer 8 2000>;
-};
 ```
 
 The two input processor cells are:
