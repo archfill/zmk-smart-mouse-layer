@@ -115,10 +115,10 @@ static void smart_mouse_layer_set_active(struct smart_mouse_layer_data *data, bo
     data->accumulated_movement = 0;
 
     if (active) {
-        zmk_keymap_layer_activate(data->target_layer, false);
+        zmk_keymap_layer_activate(data->target_layer);
         LOG_DBG("Smart mouse layer %d activated", data->target_layer);
     } else {
-        zmk_keymap_layer_deactivate(data->target_layer, false);
+        zmk_keymap_layer_deactivate(data->target_layer);
         LOG_DBG("Smart mouse layer %d deactivated", data->target_layer);
     }
 }
