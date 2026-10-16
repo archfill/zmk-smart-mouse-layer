@@ -171,3 +171,7 @@ drivers are only built where `ZMK_POINTING` is enabled; the behavior runs on the
 ## Status
 
 Experimental. Tested on a moNa2 (PMW3610 trackball, ZMK v0.3).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
