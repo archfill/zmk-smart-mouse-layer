@@ -35,3 +35,69 @@ properties:
     type: phandles
     required: true
     description: Behaviors that should be treated as transparent during effective binding lookup.
+
+  click-window-after-move-ms:
+    type: int
+    required: false
+    default: 0
+    description: |
+      If nonzero (together with or instead of click-window-after-click-ms), a press on a
+      keep-behaviors position counts as a mouse click only when the last pointer movement was
+      at most this many milliseconds ago. Otherwise the layer is deactivated and the key is
+      resolved on the layers below. 0 disables the window.
+
+  click-window-after-click-ms:
+    type: int
+    required: false
+    default: 0
+    description: |
+      A keep-behaviors press also counts as a click when any keep-behaviors position was
+      released at most this many milliseconds ago (double click, left then right click).
+      0 disables this window.
+
+  warm-reactivation-ms:
+    type: int
+    required: false
+    default: 0
+    description: |
+      After the layer is deactivated by the inactivity timeout, for this many milliseconds the
+      activation threshold is warm-movement-threshold instead of movement-threshold.
+      0 disables warm reactivation.
+
+  warm-movement-threshold:
+    type: int
+    required: false
+    default: 0
+    description: Accumulated X/Y movement required to re-activate the layer while warm.
+
+  disable-auto-activate:
+    type: boolean
+    description: |
+      If set, pointer movement never activates the layer. The layer is only entered through
+      the smart mouse layer behavior (toggle / hold lock).
+
+  exit-mode:
+    type: string
+    default: "auto"
+    enum:
+      - "auto"
+      - "explicit"
+    description: |
+      "auto": the automatically entered layer exits on typing keys, the inactivity timeout and
+      the click-window judgment. "explicit": no inactivity timeout, button keys always click,
+      typing keys exit only if explicit-exit-on-typing is set; otherwise exit via the SML_EXIT
+      behavior.
+
+  explicit-exit-on-typing:
+    type: boolean
+    description: In exit-mode "explicit", a typing key exits the layer.
+
+  toggle-exit-on-typing:
+    type: boolean
+    description: While toggle-locked, a typing key exits the layer (and clears the lock).
+
+  keep-layer-bindings:
+    type: boolean
+    description: |
+      Bindings found on the target layer (or above it) that are not keep-behaviors, such as
+      macros or &mo, keep the layer active instead of being treated as typing keys.

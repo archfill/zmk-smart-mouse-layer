@@ -9,3 +9,12 @@ config ZMK_SMART_MOUSE_LAYER
       Enables an input processor that activates a mouse layer after pointer
       movement exceeds a threshold and keeps it active for configured mouse
       behaviors.
+
+config ZMK_BEHAVIOR_SMART_MOUSE_LAYER
+    bool "Smart mouse layer lock behavior"
+    default y
+    depends on DT_HAS_ZMK_BEHAVIOR_SMART_MOUSE_LAYER_ENABLED
+    depends on ZMK_SMART_MOUSE_LAYER
+    help
+      Enables the behavior used to toggle-lock, hold-lock or exit the smart
+      mouse layer from a key.

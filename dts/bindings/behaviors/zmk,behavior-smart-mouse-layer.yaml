@@ -1,0 +1,16 @@
+description: Smart mouse layer lock behavior (toggle lock / hold lock / exit)
+
+compatible: "zmk,behavior-smart-mouse-layer"
+
+include: one_param.yaml
+
+properties:
+  input-processor:
+    type: phandle
+    required: true
+    description: The smart mouse layer input processor node this behavior controls.
+
+  layer:
+    type: int
+    required: true
+    description: Layer index activated by the toggle / hold lock. Should match the layer passed to the input processor.
